@@ -6,10 +6,29 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PhraseDetailScreen() {
   const { id, phrase, translation, meaning, icon } = useLocalSearchParams();
+
+  const handleMarkAsLearned = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem('@learned_phrases');
+      const learnedList = storedData ? JSON.parse(storedData) : [];
+      
+      if (!learnedList.includes(id)) {
+        learnedList.push(id);
+        await AsyncStorage.setItem('@learned_phrases', JSON.stringify(learnedList));
+        Alert.alert("Success", "Phrase marked as learned!");
+      } else {
+        Alert.alert("Notice", "You have already learned this phrase.");
+      }
+    } catch (e) {
+      console.error("Failed to save progress", e);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,7 +44,7 @@ export default function PhraseDetailScreen() {
         <Text style={styles.meaningLabel}>Meaning:</Text>
         <Text style={styles.meaningText}>{meaning}</Text>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleMarkAsLearned}>
           <Text style={styles.buttonText}>Mark as Learned</Text>
         </TouchableOpacity>
       </View>
